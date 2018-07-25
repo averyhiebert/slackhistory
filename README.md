@@ -18,8 +18,7 @@ containing every text post.  You could use this
 along with [Markovify](https://github.com/jsvine/markovify) to create a
 bot that writes posts mimicking your team's posting behaviour.
 
-In addition, `example.py` calculates some statistics about a team's Slack
-usage.
+In addition, `example.py` collects some data about a team's Slack usage.
 
 ## License
 

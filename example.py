@@ -1,5 +1,5 @@
 ''' An example script using functions from slack_history_loader to collect some
-statistics about members of a slack channel.
+data about members of a slack channel.
 
 We count number of questions asked and total number of posts by each user,
 as well as the total number of times each poster has been @'ed by others,
@@ -25,9 +25,9 @@ def mentioned_users(post):
 if __name__=="__main__":
     # usage: python example.py ./path/to/slack/data/ > output.csv
 
-    parser = argparse.ArgumentParser(description="This script calculates "
-        + "some statistics for a Slack channel, and outputs them "
-        + "to stdout in csv format.")
+    parser = argparse.ArgumentParser(description="This script measures some "
+        + "aspects of users' behaviour in a Slack workspace, and prints the "
+        + "data to stdout in csv format.")
     parser.add_argument("datadir", help="The directory containing "
         + "your exported (uncompressed) Slack data.")
     args = parser.parse_args()
@@ -38,7 +38,7 @@ if __name__=="__main__":
     posts = flatten_posts(history)
     id2name = {user["id"]:user["profile"]["real_name"] for user in users}
 
-    # Count up the statistics.
+    # Count stuff.
     # Note: I will index users by id.
     questions_asked = Counter()
     total_posts = Counter()
@@ -53,10 +53,10 @@ if __name__=="__main__":
                 requests[uid] += 1
 
     # Print to stdout in CSV format
-    print("user, questions asked, posts, mentions, requests")
+    print("user, questions asked, posts, mentions, question mentions")
     for uid, name in id2name.items():
         try:
-            # Python 3:
+            # Python 3 (maybe also 2 if the data is behaving nicely?):
             print("%s, %d, %d, %d, %d" % (name, 
                 questions_asked[uid], total_posts[uid], 
                 mentions[uid], requests[uid]))
