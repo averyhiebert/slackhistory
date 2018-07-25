@@ -4,8 +4,7 @@ The script `slack_history_loader.py` defines some functions for loading the
 many directories of JSON files obtained when exporting history from a Slack
 workspace.  Instructions for exporting your workspace's history can
 be found [here](https://get.slack.help/hc/en-us/articles/201658943-Export-your-workspace-data) (at the time of writing, at least).
-If you're looking for a more fully-featured tool for viewing your Slack 
-history, try 
+If you're looking for a user-friendly tool for viewing your Slack history, try 
 [slack-export-viewer](https://github.com/hfaran/slack-export-viewer) instead.
 
 You'll need to extract the downloaded zip before using this library to load it.
