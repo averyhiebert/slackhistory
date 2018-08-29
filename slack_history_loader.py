@@ -1,11 +1,13 @@
 ''' 
-This script contsins some functions for loading an exported slack history 
+This script contains some functions for loading an exported slack history 
 and doing stuff with it.  It won't work for very, very large histories 
 (i.e. too big to fit in RAM), but this shouldn't be a problem for most 
 Slack teams.
 
 You shouldn't need to install any other dependencies to use this.  It should
 work with Python 2 or 3.
+
+
 
 
 MIT License
@@ -24,7 +26,7 @@ import json
 import re
 import copy
 
-def load_history(dirname,channel_filter=None,text_only=True,posts_only=True):
+def load_history(dirname,channel_filter=None,text_only=False,posts_only=True):
     ''' 
     With dirname being the directory containing a slack backup,
     load the contents into a dict of the form
@@ -121,7 +123,7 @@ def tidy_history(history, users):
     return new_history
 
 def flatten_posts(history):
-    ''' Flatten all posts from all channels into a single list '''
+    ''' Flatten all posts from all channels into a single list. '''
     posts = []
     for post_list in history.values():
         posts = posts + post_list
@@ -130,8 +132,8 @@ def flatten_posts(history):
 def remove_urls(post_list):
     ''' Make a list of posts marginally more safe to host on 3rd-party
     services (for e.g. a slack bot?) by removing any posts containing urls,
-    in case you're worried about Google Docs links in your Slack history
-    or something like that.'''
+    in case you're worried about Google Docs links or similar in your 
+    Slack history.'''
     # This is a rough heuristic - especially not great if you
     #  discuss web development a lot on Slack!
     return [post for post in post_list if "http" not in post]
@@ -145,6 +147,9 @@ def add_period(post):
         return post.strip() + "."
     return post
         
+def mentioned_users(post):
+    ''' Get a list of all user ids that were @'ed in a post. '''
+    return re.findall("<@([A-Z0-9]*?)>",post["text"])
 
 if __name__=="__main__":
     # A main program for demonstration purposes.
