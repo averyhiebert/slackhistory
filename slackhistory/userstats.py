@@ -10,7 +10,7 @@ from slackhistory.historytools import *
 def get_user_stats(history, users):
     ''' Add some additional statistics to the list of users (including number
     of posts in each channel, number of mentions of each other user, number
-    of times mentioned by each other user, and so on. 
+    of times mentioned by each other user, and so on.) 
     
     "history" should be the full history, not "posts only".
     '''
