@@ -3,28 +3,20 @@ This script contains some functions for loading an exported slack history
 and doing stuff with it.  It won't work for very, very large histories 
 (i.e. too big to fit in RAM), but this shouldn't be a problem for most 
 Slack teams.
-
-You shouldn't need to install any other dependencies to use this.  It should
-work with Python 2 or 3.
-
-
-
-
-MIT License
-
-Copyright 2018 Avery Hiebert
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
 import argparse
 import os 
 import json
 import re
 import copy
+
+def is_text_post(post):
+    ''' True if a post is a normal text post (not a join message etc.).'''
+    if post["type"] != "message": return False
+    if "subtype" in post: return False
+    if "bot_id" in post: return False
+    return True
 
 def load_history(dirname,channel_filter=None,text_only=False,posts_only=True):
     ''' 
@@ -61,7 +53,7 @@ def load_history(dirname,channel_filter=None,text_only=False,posts_only=True):
             with open(dirname + "/" + channel + "/" + fname,"r") as f:
                 data = json.load(f)
             for item in data:
-                if posts_only:
+                if posts_only and not is_text_post(item):
                     if item["type"] != "message": continue
                     if "subtype" in item: continue
                     if "bot_id" in item: continue
@@ -70,6 +62,12 @@ def load_history(dirname,channel_filter=None,text_only=False,posts_only=True):
                 else:
                     history[channel].append(item)
     return history, users
+
+def nice_indices(users):
+    ''' Get dictionaries for going from username to id and id to username. '''
+    name2id = {user["name"]:user["id"] for user in users}
+    id2name = {user["id"]:user["name"] for user in users}
+    return name2id, id2name
 
 def remove_channels(history,channels):
     ''' Remove a given set of channels from the history. '''
@@ -123,10 +121,16 @@ def tidy_history(history, users):
     return new_history
 
 def flatten_posts(history):
-    ''' Flatten all posts from all channels into a single list. '''
+    ''' Flatten all posts from all channels into a single list.
+    Also add a field "channel" to each post.
+    
+    Does not modify the original.'''
     posts = []
-    for post_list in history.values():
-        posts = posts + post_list
+    for channel, post_list in history.items():
+        for post in post_list:
+            new_post = copy.deepcopy(post)
+            new_post["channel"] = channel
+            posts.append(new_post)
     return posts
 
 def remove_urls(post_list):
@@ -139,11 +143,10 @@ def remove_urls(post_list):
     return [post for post in post_list if "http" not in post]
 
 def add_period(post):
-    ''' Not all posts on slack end in punctuation.  But maybe you want
-    them to. '''
+    ''' Add a period to the end of a post not ending in punctuation.'''
     if len(post.strip()) < 1:
         return post
-    if post.strip()[-1] not in [".","?","!"]:
+    if post.strip()[-1] not in [".","?","!",":",";"]:
         return post.strip() + "."
     return post
         
@@ -151,36 +154,3 @@ def mentioned_users(post):
     ''' Get a list of all user ids that were @'ed in a post. '''
     return re.findall("<@([A-Z0-9]*?)>",post["text"])
 
-if __name__=="__main__":
-    # A main program for demonstration purposes.
-    #  Run this to create a text file containing a record of your team's
-    #  history that can easily be used with the Markovify library
-    #  to generate sentences resembling your team's Slack discussions!
-    parser = argparse.ArgumentParser(
-        description="Demo script for working with Slack history - creates "
-        + "a text file containing the concatenation of all posts from "
-        + "your Slack team's history.")
-
-    parser.add_argument("--slack-data-dir", default="./data",
-        help="The directory containing your extracted slack data.")
-    parser.add_argument("--output-file", default="./slack_history.txt",
-        help="The file to write your results to.")
-    args = parser.parse_args()
-
-    # Load and (partially) sanitize the history.
-    history, users = load_history(args.slack_data_dir,text_only=True)
-    nice_history = tidy_history(history, users)
-    safer_posts = remove_urls(flatten_posts(nice_history))
-
-    # Create a document that works well with Markovify.
-    finalized_posts = [add_period(p) for p in safer_posts]
-    document = "\n".join(finalized_posts)
-
-    # Save the document
-    with open(args.output_file,"w") as f:
-        try:
-            # Python 3
-            f.write(document)
-        except:
-            # Python 2?
-            f.write(document.encode("utf-8"))

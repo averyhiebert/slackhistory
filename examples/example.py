@@ -10,7 +10,7 @@ import argparse
 from collections import Counter
 import re
 
-from slack_history_loader import load_history, flatten_posts, remove_channels, mentioned_users
+from slackhistory.historytools import load_history, flatten_posts, remove_channels, mentioned_users
 
 
 def count_questions(post):
