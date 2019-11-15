@@ -24,7 +24,6 @@ def get_user_stats(history, users):
             "posts_per_channel": Counter(),
             "mentions_per_user": Counter(),  # Mentions of other users.
             "mentioned_per_user": Counter(), # Times mentioned by others.
-            "joined": None,
             "first_post_time": None,
             "last_post_time": None,
             "questions": Counter()  # Number of questions asked
@@ -39,19 +38,14 @@ def get_user_stats(history, users):
         "posts_per_channel": Counter(),
         "mentions_per_user": Counter(), 
         "mentioned_per_user": Counter(),
-        "joined": None,
         "first_post_time": None,
         "last_post_time": None,
         "questions": Counter()
     }
     posts = flatten_posts(history)
     for post in posts:
-        if post["channel"] == "general":
-            # To determine join date, we assume that every member will have
-            # a "joined" message in the general channel.
-            pass
-        # Otherwise, we ignore all posts that are not text posts by humans.
-        elif is_text_post(post):
+        # We ignore all posts that are not text posts by humans.
+        if is_text_post(post):
             user = post["user"]
             user_stats[user]["posts_per_channel"][post["channel"]] += 1
             user_stats[user]["questions"] += count_questions(post)

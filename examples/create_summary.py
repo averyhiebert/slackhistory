@@ -1,7 +1,7 @@
 ''' 
 Example script which creates a single text file containing a record
 of your team's history, which can easily be used with the Markovify library
-to generate sentences resembling your team's Slack discussions!
+to generate sentences resembling your team's Slack discussions.
 '''
 
 import argparse
